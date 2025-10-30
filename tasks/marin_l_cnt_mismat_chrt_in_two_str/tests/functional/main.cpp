@@ -20,7 +20,7 @@
 
 namespace marin_l_cnt_mismat_chrt_in_two_str {
 
-class NesterovARunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
+class MarinLCntMismatChrtInTwoStrFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
     return std::to_string(std::get<0>(test_param)) + "_" + std::get<1>(test_param);
@@ -41,7 +41,7 @@ class NesterovARunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType
       }
       img = std::vector<uint8_t>(data, data + (static_cast<ptrdiff_t>(width * height * channels)));
       stbi_image_free(data);
-      if (std::cmp_not_equal(width, height)) {
+      if (/*std::cmp_not_equal(width, height)*/width != height) {
         throw std::runtime_error("width != height: ");
       }
     }
@@ -64,7 +64,7 @@ class NesterovARunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType
 
 namespace {
 
-TEST_P(NesterovARunFuncTestsProcesses, MatmulFromPic) {
+TEST_P(MarinLCntMismatChrtInTwoStrFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
@@ -76,9 +76,9 @@ const auto kTestTasksList =
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
-const auto kPerfTestName = NesterovARunFuncTestsProcesses::PrintFuncTestName<NesterovARunFuncTestsProcesses>;
+const auto kPerfTestName = MarinLCntMismatChrtInTwoStrFuncTests::PrintFuncTestName<MarinLCntMismatChrtInTwoStrFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, NesterovARunFuncTestsProcesses, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(PicMatrixTests, MarinLCntMismatChrtInTwoStrFuncTests, kGtestValues, kPerfTestName);
 
 }  // namespace
 
