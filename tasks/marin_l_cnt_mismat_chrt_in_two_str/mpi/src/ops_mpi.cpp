@@ -1,7 +1,7 @@
 #include "marin_l_cnt_mismat_chrt_in_two_str/mpi/include/ops_mpi.hpp"
 
 #include <mpi.h>
-
+#include <algorithm>
 #include <numeric>
 #include <vector>
 
@@ -17,56 +17,44 @@ MarinLCntMismatChrtInTwoStrMPI::MarinLCntMismatChrtInTwoStrMPI(const InType &in)
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  return !GetInput().first.empty() && !GetInput().second.empty();
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  GetOutput() = 0;
+  return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
-  auto input = GetInput();
-  if (input == 0) {
-    return false;
-  }
-
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
-      }
-    }
-  }
-
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
-
-  int rank = 0;
+  int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  const std::string& s1 = GetInput().first;
+  const std::string& s2 = GetInput().second;
+
+  size_t n = std::min(s1.size(), s2.size());
+  size_t chunk = n / size;
+  size_t start = rank * chunk;
+  size_t end = (rank == size - 1) ? n : start + chunk;
+
+  int local_count = 0;
+  for (size_t i = start; i < end; i++) {
+    if (s1[i] != s2[i])
+      local_count++;
+  }
+
+  int global_count = 0;
+  MPI_Reduce(&local_count, &global_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {
-    GetOutput() /= num_threads;
-  } else {
-    int counter = 0;
-    for (int i = 0; i < num_threads; i++) {
-      counter++;
-    }
-
-    if (counter != 0) {
-      GetOutput() /= counter;
-    }
+    GetOutput() = global_count;
   }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  return GetOutput() > 0;
+  return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return GetOutput() >= 0;
 }
 
 }  // namespace marin_l_cnt_mismat_chrt_in_two_str
