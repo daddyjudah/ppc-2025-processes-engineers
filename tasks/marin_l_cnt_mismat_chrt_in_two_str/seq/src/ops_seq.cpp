@@ -1,5 +1,6 @@
 #include "marin_l_cnt_mismat_chrt_in_two_str/seq/include/ops_seq.hpp"
 
+#include <algorithm>
 #include <numeric>
 #include <vector>
 
@@ -15,46 +16,29 @@ MarinLCntMismatChrtInTwoStrSEQ::MarinLCntMismatChrtInTwoStrSEQ(const InType &in)
 }
 
 bool MarinLCntMismatChrtInTwoStrSEQ::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  return !GetInput().first.empty() && !GetInput().second.empty();
 }
 
 bool MarinLCntMismatChrtInTwoStrSEQ::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  GetOutput() = 0;
+  return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrSEQ::RunImpl() {
-  if (GetInput() == 0) {
-    return false;
-  }
+  const std::string& s1 = GetInput().first;
+  const std::string& s2 = GetInput().second;
 
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
-      }
-    }
+  int count = 0;
+  for (size_t i = 0; i < std::min(s1.size(), s2.size()); i++) {
+    if (s1[i] != s2[i])
+      count++;
   }
-
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
-
-  int counter = 0;
-  for (int i = 0; i < num_threads; i++) {
-    counter++;
-  }
-
-  if (counter != 0) {
-    GetOutput() /= counter;
-  }
-  return GetOutput() > 0;
+  GetOutput() = count;
+  return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrSEQ::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return GetOutput() >= 0;
 }
 
 }  // namespace marin_l_cnt_mismat_chrt_in_two_str
