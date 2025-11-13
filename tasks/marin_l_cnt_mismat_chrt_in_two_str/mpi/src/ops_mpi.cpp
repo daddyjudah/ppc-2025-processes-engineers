@@ -50,12 +50,10 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   }
 
   int global_count = 0;
-  MPI_Reduce(&local_count, &global_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Allreduce(&local_count, &global_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-  if (rank == 0) {
-    GetOutput() = global_count;
-  }
-  return true;;
+  GetOutput() = global_count;
+  return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PostProcessingImpl() {
