@@ -29,16 +29,18 @@ bool MarinLCntMismatChrtInTwoStrSEQ::RunImpl() {
   const std::string& s2 = GetInput().second;
 
   int count = 0;
-  for (size_t i = 0; i < std::min(s1.size(), s2.size()); i++) {
+  size_t min_len = std::min(s1.size(), s2.size());
+  size_t max_len = std::max(s1.size(), s2.size());
+
+  for (size_t i = 0; i < min_len; i++) {
     if (s1[i] != s2[i])
       count++;
   }
+
+  count += static_cast<int>(max_len - min_len);
+
   GetOutput() = count;
   return true;
-}
-
-bool MarinLCntMismatChrtInTwoStrSEQ::PostProcessingImpl() {
-  return GetOutput() >= 0;
 }
 
 }  // namespace marin_l_cnt_mismat_chrt_in_two_str

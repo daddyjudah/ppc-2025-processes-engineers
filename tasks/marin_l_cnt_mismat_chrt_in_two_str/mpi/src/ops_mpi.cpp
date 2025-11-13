@@ -48,7 +48,9 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   MPI_Reduce(&local_count, &global_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   if (rank == 0) {
-    GetOutput() = global_count;
+    int diff_len = static_cast<int>(
+        std::max(s1.size(), s2.size()) - std::min(s1.size(), s2.size()));
+    GetOutput() = global_count + diff_len;
   }
   return true;
 }
