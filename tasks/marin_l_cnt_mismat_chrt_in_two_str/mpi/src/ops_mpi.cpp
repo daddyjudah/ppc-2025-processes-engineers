@@ -65,4 +65,8 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   return true;;
 }
 
+bool MarinLCntMismatChrtInTwoStrMPI::PostProcessingImpl() {
+  return true;
+}
+
 }  // namespace marin_l_cnt_mismat_chrt_in_two_str
