@@ -66,6 +66,11 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PostProcessingImpl() {
+  int finalized;
+  MPI_Finalized(&finalized);
+  if (!finalized) {
+    MPI_Finalize();
+  }
   return true;
 }
 
