@@ -21,6 +21,14 @@ bool MarinLCntMismatChrtInTwoStrMPI::ValidationImpl() {
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PreProcessingImpl() {
+  int initialized;
+  MPI_Initialized(&initialized);
+  if (!initialized) {
+    int argc = 0;
+    char** argv = nullptr;
+    MPI_Init(&argc, &argv);
+  }
+  
   GetOutput() = 0;
   return true;
 }
@@ -56,6 +64,12 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PostProcessingImpl() {
+  int finalized;
+  MPI_Finalized(&finalized);
+  if (!finalized) {
+    MPI_Finalize();
+  }
+  
   return GetOutput() >= 0;
 }
 
