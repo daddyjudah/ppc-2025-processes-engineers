@@ -16,7 +16,7 @@ MarinLCntMismatChrtInTwoStrSEQ::MarinLCntMismatChrtInTwoStrSEQ(const InType &in)
 }
 
 bool MarinLCntMismatChrtInTwoStrSEQ::ValidationImpl() {
-  return !GetInput().first.empty() && !GetInput().second.empty();
+  return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrSEQ::PreProcessingImpl() {

@@ -17,7 +17,7 @@ MarinLCntMismatChrtInTwoStrMPI::MarinLCntMismatChrtInTwoStrMPI(const InType &in)
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::ValidationImpl() {
-  return !GetInput().first.empty() && !GetInput().second.empty();
+  return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PreProcessingImpl() {
