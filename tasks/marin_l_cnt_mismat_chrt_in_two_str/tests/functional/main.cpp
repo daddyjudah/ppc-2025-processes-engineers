@@ -215,14 +215,26 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, swapped_chars) {
   CntMismatChrtInTwoStr("abc", "acb", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, uneven_length) {
-  InType input = {"short", "shorter"};
-  MarinLCntMismatChrtInTwoStrSEQ task(input);
-  ASSERT_TRUE(task.Validation());
-  ASSERT_TRUE(task.PreProcessing());
-  ASSERT_TRUE(task.Run());
-  ASSERT_TRUE(task.PostProcessing());
-  CntMismatChrtInTwoStr("short", "shorter", task.GetOutput());
+TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, length_gap_5000) {
+    std::string a = "";
+    std::string b(5000, 'q');
+    InType input = {a, b};
+    MarinLCntMismatChrtInTwoStrMPI task(input);
+    ASSERT_TRUE(task.Validation());
+    ASSERT_TRUE(task.PreProcessing());
+    ASSERT_TRUE(task.Run());
+    ASSERT_TRUE(task.PostProcessing());
+    CntMismatChrtInTwoStr(a, b, task.GetOutput());
+}
+
+TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, diff_at_end) {
+    InType input = {"abcdefX", "abcdefY"};
+    MarinLCntMismatChrtInTwoStrSEQ task(input);
+    ASSERT_TRUE(task.Validation());
+    ASSERT_TRUE(task.PreProcessing());
+    ASSERT_TRUE(task.Run());
+    ASSERT_TRUE(task.PostProcessing());
+    CntMismatChrtInTwoStr("abcdefX", "abcdefY", task.GetOutput());
 }
 
 TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, spaces_included) {
