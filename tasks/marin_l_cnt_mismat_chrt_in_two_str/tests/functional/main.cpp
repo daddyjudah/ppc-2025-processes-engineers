@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
-#include <stb/stb_image.h>
+
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <numeric>
-#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -40,11 +38,14 @@ class MarinLCntMismatChrtInTwoStrFuncTests : public ppc::util::BaseRunFuncTests<
   bool CheckTestOutputData(OutType &output_data) final {
     int expected = 0;
     for (size_t i = 0; i < std::min(str1_.size(), str2_.size()); i++) {
-      if (str1_[i] != str2_[i])
+      if (str1_[i] != str2_[i]) {
         expected++;
+      }
     }
     expected += static_cast<int>(
-        std::max(str1_.size(), str2_.size()) - std::min(str1_.size(), str2_.size()));
+        std::max(str1_.size(), str2_.size()) - 
+        std::min(str1_.size(), str2_.size()));
+
     return output_data == expected;
   }
 
@@ -62,10 +63,12 @@ namespace {
   void CntMismatChrtInTwoStr(const std::string& str1, const std::string& str2, int result) {
     int expected = 0;
     for (size_t i = 0; i < std::min(str1.size(), str2.size()); i++) {
-      if (str1[i] != str2[i])
+      if (str1[i] != str2[i]) {
         expected++;
+      }
     }
-    expected += static_cast<int>(std::max(str1.size(), str2.size()) - std::min(str1.size(), str2.size()));
+    expected += static_cast<int>(std::max(str1.size(), str2.size()) - 
+                                 std::min(str1.size(), str2.size()));
     EXPECT_EQ(result, expected) << "Failed in: '" << str1 << "' vs '" << str2 << "'";
   }
 
@@ -102,7 +105,7 @@ INSTANTIATE_TEST_SUITE_P(
     kParameterizedValues,
     kFunctionalTestName);
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, identical_strings) {
+TEST(MarinLCntMismatStrMPI, IdenticalStrings) {
   InType input = {"hello", "hello"};
   MarinLCntMismatChrtInTwoStrMPI task(input);
   ASSERT_TRUE(task.Validation());
@@ -112,7 +115,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, identical_strings) {
   CntMismatChrtInTwoStr("hello", "hello", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, one_difference) {
+TEST(MarinLCntMismatStrMPI, OneDifference) {
   InType input = {"world", "worle"};
   MarinLCntMismatChrtInTwoStrMPI task(input);
   ASSERT_TRUE(task.Validation());
@@ -122,7 +125,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, one_difference) {
   CntMismatChrtInTwoStr("world", "worle", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, different_length) {
+TEST(MarinLCntMismatStrMPI, DifferentLength) {
   InType input = {"abc", "abcdef"};
   MarinLCntMismatChrtInTwoStrMPI task(input);
   ASSERT_TRUE(task.Validation());
@@ -132,7 +135,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, different_length) {
   CntMismatChrtInTwoStr("abc", "abcdef", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, both_empty) {
+TEST(MarinLCntMismatStrMPI, BothEmpty) {
   InType input = {"", ""};
   MarinLCntMismatChrtInTwoStrMPI task(input);
   ASSERT_TRUE(task.Validation());
@@ -142,7 +145,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, both_empty) {
   CntMismatChrtInTwoStr("", "", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, empty_vs_non_empty) {
+TEST(MarinLCntMismatStrMPI, EmptyVsNonEmpty) {
   InType input = {"", "abc"};
   MarinLCntMismatChrtInTwoStrMPI task(input);
   ASSERT_TRUE(task.Validation());
@@ -152,7 +155,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, empty_vs_non_empty) {
   CntMismatChrtInTwoStr("", "abc", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, case_sensitive) {
+TEST(MarinLCntMismatStrMPI, CaseSensitive) {
   InType input = {"Hello", "hello"};
   MarinLCntMismatChrtInTwoStrMPI task(input);
   ASSERT_TRUE(task.Validation());
@@ -162,7 +165,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, case_sensitive) {
   CntMismatChrtInTwoStr("Hello", "hello", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, numeric_chars) {
+TEST(MarinLCntMismatStrMPI, NumericChars) {
   InType input = {"12345", "12995"};
   MarinLCntMismatChrtInTwoStrMPI task(input);
   ASSERT_TRUE(task.Validation());
@@ -172,7 +175,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, numeric_chars) {
   CntMismatChrtInTwoStr("12345", "12995", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, very_long_strings) {
+TEST(MarinLCntMismatStrMPI, VeryLongStrings) {
   std::string a(1000, 'a');
   std::string b(1000, 'b');
   InType input = {a, b};
@@ -184,7 +187,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, very_long_strings) {
   CntMismatChrtInTwoStr(a, b, task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, single_char_difference) {
+TEST(MarinLCntMismatStrSEQ, SingleCharDifference) {
   InType input = {"A", "B"};
   MarinLCntMismatChrtInTwoStrSEQ task(input);
   ASSERT_TRUE(task.Validation());
@@ -194,7 +197,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, single_char_difference) {
   CntMismatChrtInTwoStr("A", "B", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, long_identical) {
+TEST(MarinLCntMismatStrSEQ, LongIdentical) {
   std::string s(200, 'x');
   InType input = {s, s};
   MarinLCntMismatChrtInTwoStrSEQ task(input);
@@ -205,7 +208,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, long_identical) {
   CntMismatChrtInTwoStr(s, s, task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, swapped_chars) {
+TEST(MarinLCntMismatStrSEQ, SwappedChars) {
   InType input = {"abc", "acb"};
   MarinLCntMismatChrtInTwoStrSEQ task(input);
   ASSERT_TRUE(task.Validation());
@@ -215,8 +218,8 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, swapped_chars) {
   CntMismatChrtInTwoStr("abc", "acb", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, length_gap_5000) {
-    std::string a = "";
+TEST(MarinLCntMismatStrMPI, LengthGap5000) {
+    std::string a;
     std::string b(5000, 'q');
     InType input = {a, b};
     MarinLCntMismatChrtInTwoStrMPI task(input);
@@ -227,7 +230,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_mpi, length_gap_5000) {
     CntMismatChrtInTwoStr(a, b, task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, diff_at_end) {
+TEST(MarinLCntMismatStrSEQ, DiffAtEnd) {
     InType input = {"abcdefX", "abcdefY"};
     MarinLCntMismatChrtInTwoStrSEQ task(input);
     ASSERT_TRUE(task.Validation());
@@ -237,7 +240,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, diff_at_end) {
     CntMismatChrtInTwoStr("abcdefX", "abcdefY", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, spaces_included) {
+TEST(MarinLCntMismatStrSEQ, SpacesIncluded) {
   InType input = {"a b c", "abc "};
   MarinLCntMismatChrtInTwoStrSEQ task(input);
   ASSERT_TRUE(task.Validation());
@@ -247,7 +250,7 @@ TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, spaces_included) {
   CntMismatChrtInTwoStr("a b c", "abc ", task.GetOutput());
 }
 
-TEST(marin_l_cnt_mismat_chrt_in_two_str_seq, unicode_like_chars) {
+TEST(MarinLCntMismatStrSEQ, UnicodeLikeChars) {
   InType input = {"ñandú", "nandu"};
   MarinLCntMismatChrtInTwoStrSEQ task(input);
   ASSERT_TRUE(task.Validation());
