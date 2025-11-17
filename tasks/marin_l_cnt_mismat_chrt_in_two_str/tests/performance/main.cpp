@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <string>
+#include <utility>
 
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
 #include "marin_l_cnt_mismat_chrt_in_two_str/mpi/include/ops_mpi.hpp"
