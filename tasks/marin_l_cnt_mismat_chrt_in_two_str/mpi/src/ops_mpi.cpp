@@ -1,12 +1,14 @@
 #include "marin_l_cnt_mismat_chrt_in_two_str/mpi/include/ops_mpi.hpp"
 
 #include <mpi.h>
+
 #include <algorithm>
-#include <numeric>
+#include <cstddef>
+#include <string> 
 #include <vector>
 
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
-#include "util/include/util.hpp"
+
 
 namespace marin_l_cnt_mismat_chrt_in_two_str {
 
@@ -21,13 +23,13 @@ bool MarinLCntMismatChrtInTwoStrMPI::ValidationImpl() {
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PreProcessingImpl() {
-  
   GetOutput() = 0;
   return true;
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
-  int rank, size;
+  int rank = 0;
+  int size = 1;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
