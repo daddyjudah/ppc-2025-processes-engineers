@@ -4,11 +4,11 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <cstdint>
+
 #include <string>
 #include <tuple>
 #include <utility>
-#include <vector>
+
 
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
 #include "marin_l_cnt_mismat_chrt_in_two_str/mpi/include/ops_mpi.hpp"
@@ -26,11 +26,12 @@ class MarinLCntMismatChrtInTwoStrFuncTests : public ppc::util::BaseRunFuncTests<
 
  protected:
   void SetUp() override {
-    TestType params = std::get<
+    const auto params = std::get<
         static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(
         GetParam());
-    std::string combined = std::get<1>(params);
-    auto pos = combined.find('_');
+    const std::string combined = std::get<1>(params);
+    const auto pos = combined.find('_');
+
     str1_ = combined.substr(0, pos);
     str2_ = combined.substr(pos + 1);
   }
