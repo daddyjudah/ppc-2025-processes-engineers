@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <string>
 #include <utility>
 
@@ -10,7 +11,7 @@
 namespace marin_l_cnt_mismat_chrt_in_two_str {
 
 class MarinLCntMismatChrtInTwoStrPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  public:
+ public:
   void SetUp() override {
     const int str_length = 100000;
     std::string str1(str_length, 'A');
@@ -42,18 +43,12 @@ TEST_P(MarinLCntMismatChrtInTwoStrPerfTests, RunPerfModes) {
 }
 
 const auto kAllPerfTasks =
-    ppc::util::MakeAllPerfTasks<InType,
-        MarinLCntMismatChrtInTwoStrMPI,
-        MarinLCntMismatChrtInTwoStrSEQ>(
+    ppc::util::MakeAllPerfTasks<InType, MarinLCntMismatChrtInTwoStrMPI, MarinLCntMismatChrtInTwoStrSEQ>(
         PPC_SETTINGS_marin_l_cnt_mismat_chrt_in_two_str);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 const auto kPerfTestName = MarinLCntMismatChrtInTwoStrPerfTests::CustomPerfTestName;
 
-INSTANTIATE_TEST_SUITE_P(
-    RunModeTests,
-    MarinLCntMismatChrtInTwoStrPerfTests,
-    kGtestValues,
-    kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(RunModeTests, MarinLCntMismatChrtInTwoStrPerfTests, kGtestValues, kPerfTestName);
 
 }  // namespace marin_l_cnt_mismat_chrt_in_two_str

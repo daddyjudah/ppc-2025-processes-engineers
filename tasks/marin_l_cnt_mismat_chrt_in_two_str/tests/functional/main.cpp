@@ -1,14 +1,11 @@
 #include <gtest/gtest.h>
 
-
 #include <algorithm>
 #include <array>
 #include <cstddef>
-
 #include <string>
 #include <tuple>
 #include <utility>
-
 
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
 #include "marin_l_cnt_mismat_chrt_in_two_str/mpi/include/ops_mpi.hpp"
@@ -26,9 +23,7 @@ class MarinLCntMismatChrtInTwoStrFuncTests : public ppc::util::BaseRunFuncTests<
 
  protected:
   void SetUp() override {
-    const auto params = std::get<
-        static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(
-        GetParam());
+    const auto params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
     const std::string combined = std::get<1>(params);
     const auto pos = combined.find('_');
 
@@ -43,9 +38,7 @@ class MarinLCntMismatChrtInTwoStrFuncTests : public ppc::util::BaseRunFuncTests<
         expected++;
       }
     }
-    expected += static_cast<int>(
-        std::max(str1_.size(), str2_.size()) - 
-        std::min(str1_.size(), str2_.size()));
+    expected += static_cast<int>(std::max(str1_.size(), str2_.size()) - std::min(str1_.size(), str2_.size()));
 
     return output_data == expected;
   }
@@ -61,50 +54,40 @@ class MarinLCntMismatChrtInTwoStrFuncTests : public ppc::util::BaseRunFuncTests<
 
 namespace {
 
-  void CntMismatChrtInTwoStr(const std::string& str1, const std::string& str2, int result) {
-    int expected = 0;
-    for (size_t i = 0; i < std::min(str1.size(), str2.size()); i++) {
-      if (str1[i] != str2[i]) {
-        expected++;
-      }
+void CntMismatChrtInTwoStr(const std::string &str1, const std::string &str2, int result) {
+  int expected = 0;
+  for (size_t i = 0; i < std::min(str1.size(), str2.size()); i++) {
+    if (str1[i] != str2[i]) {
+      expected++;
     }
-    expected += static_cast<int>(std::max(str1.size(), str2.size()) - 
-                                 std::min(str1.size(), str2.size()));
-    EXPECT_EQ(result, expected) << "Failed in: '" << str1 << "' vs '" << str2 << "'";
   }
-
-
+  expected += static_cast<int>(std::max(str1.size(), str2.size()) - std::min(str1.size(), str2.size()));
+  EXPECT_EQ(result, expected) << "Failed in: '" << str1 << "' vs '" << str2 << "'";
+}
 
 TEST_P(MarinLCntMismatChrtInTwoStrFuncTests, FindsExpectedDiffer) {
   ExecuteTest(GetParam());
 }
 
 const std::array<TestType, 10> kFunctionalParams = {
-    std::make_tuple(1, "a_a"),
-    std::make_tuple(2, "a_b"),
-    std::make_tuple(3, "abc_adc"),
-    std::make_tuple(4, "abcd_abcf"),
-    std::make_tuple(5, "abcd_abcde"),
-    std::make_tuple(6, "kitten_sitting"),
-    std::make_tuple(7, "12345_54321"),
-    std::make_tuple(8, "_empty_abc"),
-    std::make_tuple(9, "hello_HELLO"),
-    std::make_tuple(10, "longstring_short")
-};
+    std::make_tuple(1, "a_a"),         std::make_tuple(2, "a_b"),
+    std::make_tuple(3, "abc_adc"),     std::make_tuple(4, "abcd_abcf"),
+    std::make_tuple(5, "abcd_abcde"),  std::make_tuple(6, "kitten_sitting"),
+    std::make_tuple(7, "12345_54321"), std::make_tuple(8, "_empty_abc"),
+    std::make_tuple(9, "hello_HELLO"), std::make_tuple(10, "longstring_short")};
 
-const auto kTaskMatrix = std::tuple_cat(
-  ppc::util::AddFuncTask<MarinLCntMismatChrtInTwoStrMPI, InType>(kFunctionalParams, PPC_SETTINGS_marin_l_cnt_mismat_chrt_in_two_str),
-  ppc::util::AddFuncTask<MarinLCntMismatChrtInTwoStrSEQ, InType>(kFunctionalParams, PPC_SETTINGS_marin_l_cnt_mismat_chrt_in_two_str));
+const auto kTaskMatrix = std::tuple_cat(ppc::util::AddFuncTask<MarinLCntMismatChrtInTwoStrMPI, InType>(
+                                            kFunctionalParams, PPC_SETTINGS_marin_l_cnt_mismat_chrt_in_two_str),
+                                        ppc::util::AddFuncTask<MarinLCntMismatChrtInTwoStrSEQ, InType>(
+                                            kFunctionalParams, PPC_SETTINGS_marin_l_cnt_mismat_chrt_in_two_str));
 
 const auto kParameterizedValues = ppc::util::ExpandToValues(kTaskMatrix);
 
-const auto kFunctionalTestName = MarinLCntMismatChrtInTwoStrFuncTests::PrintFuncTestName<MarinLCntMismatChrtInTwoStrFuncTests>;
+const auto kFunctionalTestName =
+    MarinLCntMismatChrtInTwoStrFuncTests::PrintFuncTestName<MarinLCntMismatChrtInTwoStrFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(
-    MarinStringMismatchSuite,
-    MarinLCntMismatChrtInTwoStrFuncTests,
-    kParameterizedValues,
-    kFunctionalTestName);
+INSTANTIATE_TEST_SUITE_P(MarinStringMismatchSuite, MarinLCntMismatChrtInTwoStrFuncTests, kParameterizedValues,
+                         kFunctionalTestName);
 
 TEST(MarinLCntMismatStrMPI, IdenticalStrings) {
   InType input = {"hello", "hello"};
@@ -220,25 +203,25 @@ TEST(MarinLCntMismatStrSEQ, SwappedChars) {
 }
 
 TEST(MarinLCntMismatStrMPI, LengthGap5000) {
-    std::string a;
-    std::string b(5000, 'q');
-    InType input = {a, b};
-    MarinLCntMismatChrtInTwoStrMPI task(input);
-    ASSERT_TRUE(task.Validation());
-    ASSERT_TRUE(task.PreProcessing());
-    ASSERT_TRUE(task.Run());
-    ASSERT_TRUE(task.PostProcessing());
-    CntMismatChrtInTwoStr(a, b, task.GetOutput());
+  std::string a;
+  std::string b(5000, 'q');
+  InType input = {a, b};
+  MarinLCntMismatChrtInTwoStrMPI task(input);
+  ASSERT_TRUE(task.Validation());
+  ASSERT_TRUE(task.PreProcessing());
+  ASSERT_TRUE(task.Run());
+  ASSERT_TRUE(task.PostProcessing());
+  CntMismatChrtInTwoStr(a, b, task.GetOutput());
 }
 
 TEST(MarinLCntMismatStrSEQ, DiffAtEnd) {
-    InType input = {"abcdefX", "abcdefY"};
-    MarinLCntMismatChrtInTwoStrSEQ task(input);
-    ASSERT_TRUE(task.Validation());
-    ASSERT_TRUE(task.PreProcessing());
-    ASSERT_TRUE(task.Run());
-    ASSERT_TRUE(task.PostProcessing());
-    CntMismatChrtInTwoStr("abcdefX", "abcdefY", task.GetOutput());
+  InType input = {"abcdefX", "abcdefY"};
+  MarinLCntMismatChrtInTwoStrSEQ task(input);
+  ASSERT_TRUE(task.Validation());
+  ASSERT_TRUE(task.PreProcessing());
+  ASSERT_TRUE(task.Run());
+  ASSERT_TRUE(task.PostProcessing());
+  CntMismatChrtInTwoStr("abcdefX", "abcdefY", task.GetOutput());
 }
 
 TEST(MarinLCntMismatStrSEQ, SpacesIncluded) {

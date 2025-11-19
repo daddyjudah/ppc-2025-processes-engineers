@@ -4,10 +4,9 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <string> 
+#include <string>
 
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
-
 
 namespace marin_l_cnt_mismat_chrt_in_two_str {
 
@@ -32,8 +31,8 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  const std::string& s1 = GetInput().first;
-  const std::string& s2 = GetInput().second;
+  const std::string &s1 = GetInput().first;
+  const std::string &s2 = GetInput().second;
 
   size_t max_len = std::max(s1.size(), s2.size());
   size_t chunk = max_len / size;
@@ -44,7 +43,7 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   for (size_t i = start; i < end; i++) {
     char c1 = (i < s1.size()) ? s1[i] : '\0';
     char c2 = (i < s2.size()) ? s2[i] : '\0';
-    
+
     if (c1 != c2) {
       local_count++;
     }
@@ -58,7 +57,6 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PostProcessingImpl() {
-
   return true;
 }
 

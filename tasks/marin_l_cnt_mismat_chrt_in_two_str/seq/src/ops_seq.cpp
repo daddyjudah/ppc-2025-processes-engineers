@@ -4,9 +4,7 @@
 #include <cstddef>
 #include <string>
 
-
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
-
 
 namespace marin_l_cnt_mismat_chrt_in_two_str {
 
@@ -26,8 +24,8 @@ bool MarinLCntMismatChrtInTwoStrSEQ::PreProcessingImpl() {
 }
 
 bool MarinLCntMismatChrtInTwoStrSEQ::RunImpl() {
-  const std::string& s1 = GetInput().first;
-  const std::string& s2 = GetInput().second;
+  const std::string &s1 = GetInput().first;
+  const std::string &s2 = GetInput().second;
 
   int count = 0;
   size_t min_len = std::min(s1.size(), s2.size());
