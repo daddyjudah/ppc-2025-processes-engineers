@@ -10,7 +10,7 @@ repos:
       - id: clang-format
         files: \.(cpp|hpp|c|h)$
         exclude: ^(3rdparty/|build.*/|install/)
-        entry: "C:/Progra~1/LLVM/bin/clang-format.exe"
+
         args: [--style=file]
 
   # CMake formatting
