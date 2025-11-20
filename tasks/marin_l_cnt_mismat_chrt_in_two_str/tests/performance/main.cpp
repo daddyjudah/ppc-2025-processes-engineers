@@ -13,7 +13,7 @@ namespace marin_l_cnt_mismat_chrt_in_two_str {
 class MarinLCntMismatChrtInTwoStrPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
  public:
   void SetUp() override {
-    const int str_length = 5000000;
+    const int str_length = 40000000;
     std::string str1(str_length, 'A');
     std::string str2 = str1;
 
