@@ -13,18 +13,6 @@ include(${CMAKE_SOURCE_DIR}/cmake/functions.cmake)
 ppc_add_test(${FUNC_TEST_EXEC} common/runners/functional.cpp USE_FUNC_TESTS)
 ppc_add_test(${PERF_TEST_EXEC} common/runners/performance.cpp USE_PERF_TESTS)
 
-find_package(MPI REQUIRED)
-if (MPI_FOUND)
-    include_directories(${MPI_INCLUDE_PATH})
-    target_link_libraries(${FUNC_TEST_EXEC} PRIVATE ${MPI_LIBRARIES})
-    target_link_libraries(${PERF_TEST_EXEC} PRIVATE ${MPI_LIBRARIES})
-else()
-    include_directories("C:/Program Files (x86)/Microsoft SDKs/MPI/Include")
-    link_directories("C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64")
-    target_link_libraries(${FUNC_TEST_EXEC} PRIVATE msmpi)
-    target_link_libraries(${PERF_TEST_EXEC} PRIVATE msmpi)
-endif()
-
 # ——— List of implementations ————————————————————————————————————————
 set(PPC_IMPLEMENTATIONS "all;mpi;omp;seq;stl;tbb" CACHE STRING "Implementations to build (semicolon-separated)")
 
