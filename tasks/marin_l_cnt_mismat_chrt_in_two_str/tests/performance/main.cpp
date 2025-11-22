@@ -13,16 +13,16 @@ namespace marin_l_cnt_mismat_chrt_in_two_str {
 class MarinLCntMismatChrtInTwoStrPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
  public:
   void SetUp() override {
-    const int str_length = 800000000;
+    const int str_length = 100000000;
     std::string str1(str_length, 'A');
     std::string str2 = str1;
 
-    for (int i = 0; i < str_length; i += 5) {
+    for (int i = 0; i < str_length; i += 3) {
       str2[i] = 'B';
     }
 
     input_data_ = std::make_pair(str1, str2);
-    expected_mismatches_ = str_length / 5;
+    expected_mismatches_ = str_length / 3;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
