@@ -49,7 +49,7 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   size_t rem = max_len % size;
 
   size_t offset = 0;
-  for (int i = 0; i < size; i++) {
+  for (size_t i = 0; i < static_cast<size_t>(size); i++) {
     size_t len = chunk + (i < rem ? 1 : 0);
     sendcounts[i] = static_cast<int>(len);
     displs[i] = static_cast<int>(offset);
