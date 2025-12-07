@@ -61,43 +61,29 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  const std::string &s1_full = local_s1_;
-  const std::string &s2_full = local_s2_;
+  const std::string &s1 = local_s1_;
+  const std::string &s2 = local_s2_;
 
-  size_t max_len = std::max(s1_full.size(), s2_full.size());
+  std::size_t len1 = s1.size();
+  std::size_t len2 = s2.size();
+  std::size_t total_len = std::max(len1, len2);
 
-  if (max_len == 0) {
+  if (total_len == 0) {
     GetOutput() = 0;
     return true;
   }
 
-  std::vector<int> sendcounts(size);
-  std::vector<int> displs(size);
+  std::size_t chunk = total_len / static_cast<std::size_t>(size);
+  std::size_t remainder = total_len % static_cast<std::size_t>(size);
 
-  size_t chunk = max_len / size;
-  size_t rem = max_len % size;
-
-  size_t offset = 0;
-  for (size_t i = 0; i < static_cast<size_t>(size); i++) {
-    size_t len = chunk + (i < rem ? 1 : 0);
-    sendcounts[i] = static_cast<int>(len);
-    displs[i] = static_cast<int>(offset);
-    offset += len;
-  }
-
-  std::string s1_local(sendcounts[rank], '\0');
-  std::string s2_local(sendcounts[rank], '\0');
-
-  MPI_Scatterv(s1_full.data(), sendcounts.data(), displs.data(), MPI_CHAR, s1_local.data(), sendcounts[rank], MPI_CHAR,
-               0, MPI_COMM_WORLD);
-
-  MPI_Scatterv(s2_full.data(), sendcounts.data(), displs.data(), MPI_CHAR, s2_local.data(), sendcounts[rank], MPI_CHAR,
-               0, MPI_COMM_WORLD);
+  std::size_t start =
+      static_cast<std::size_t>(rank) * chunk + std::min<std::size_t>(static_cast<std::size_t>(rank), remainder);
+  std::size_t end = start + chunk + (static_cast<std::size_t>(rank) < remainder ? 1u : 0u);
 
   int local_count = 0;
-  for (size_t i = 0; i < s1_local.size(); i++) {
-    if (s1_local[i] != s2_local[i]) {
-      local_count++;
+  for (std::size_t i = start; i < end && i < total_len; ++i) {
+    if (i >= len1 || i >= len2 || s1[i] != s2[i]) {
+      ++local_count;
     }
   }
 
