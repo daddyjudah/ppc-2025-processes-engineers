@@ -6,7 +6,6 @@
 #include <array>
 #include <cstddef>
 #include <string>
-#include <vector>
 
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
 
