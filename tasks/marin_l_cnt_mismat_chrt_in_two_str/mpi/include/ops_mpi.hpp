@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
 #include "task/include/task.hpp"
 

@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <utility>
 
 #include "marin_l_cnt_mismat_chrt_in_two_str/common/include/common.hpp"
 
@@ -28,7 +29,8 @@ bool MarinLCntMismatChrtInTwoStrMPI::PreProcessingImpl() {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   std::array<int, 2> lengths{};
-  std::string s1_local, s2_local;
+  std::string s1_local;
+  std::string s2_local;
 
   if (rank == 0) {
     s1_local = GetInput().first;
@@ -76,8 +78,8 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   std::size_t remainder = total_len % static_cast<std::size_t>(size);
 
   std::size_t start =
-      static_cast<std::size_t>(rank) * chunk + std::min<std::size_t>(static_cast<std::size_t>(rank), remainder);
-  std::size_t end = start + chunk + (static_cast<std::size_t>(rank) < remainder ? 1u : 0u);
+      (static_cast<std::size_t>(rank) * chunk) + std::min<std::size_t>(static_cast<std::size_t>(rank), remainder);
+  std::size_t end = start + chunk + (static_cast<std::size_t>(rank) < remainder ? 1U : 0U);
 
   int local_count = 0;
   for (std::size_t i = start; i < end && i < total_len; ++i) {
