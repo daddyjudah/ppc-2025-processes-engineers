@@ -22,6 +22,27 @@ bool MarinLCntMismatChrtInTwoStrMPI::ValidationImpl() {
 }
 
 bool MarinLCntMismatChrtInTwoStrMPI::PreProcessingImpl() {
+  int rank = 0;
+  int size = 1;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  std::array<int, 2> lengths{};
+  if (rank == 0) {
+    lengths[0] = static_cast<int>(GetInput().first.size());
+    lengths[1] = static_cast<int>(GetInput().second.size());
+  }
+
+  MPI_Bcast(lengths.data(), 2, MPI_INT, 0, MPI_COMM_WORLD);
+
+  if (rank != 0) {
+    GetInput().first.resize(lengths[0]);
+    GetInput().second.resize(lengths[1]);
+  }
+
+  MPI_Bcast(GetInput().first.data(), lengths[0], MPI_CHAR, 0, MPI_COMM_WORLD);
+  MPI_Bcast(GetInput().second.data(), lengths[1], MPI_CHAR, 0, MPI_COMM_WORLD);
+
   GetOutput() = 0;
   return true;
 }
