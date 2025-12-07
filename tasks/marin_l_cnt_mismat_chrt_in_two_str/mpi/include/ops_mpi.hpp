@@ -17,6 +17,8 @@ class MarinLCntMismatChrtInTwoStrMPI : public BaseTask {
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
+  std::string local_s1_;
+  std::string local_s2_;
 };
 
 }  // namespace marin_l_cnt_mismat_chrt_in_two_str

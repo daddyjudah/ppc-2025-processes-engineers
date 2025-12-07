@@ -3,6 +3,7 @@
 #include <mpi.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -28,20 +29,27 @@ bool MarinLCntMismatChrtInTwoStrMPI::PreProcessingImpl() {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   std::array<int, 2> lengths{};
+  std::string s1_local, s2_local;
+
   if (rank == 0) {
-    lengths[0] = static_cast<int>(GetInput().first.size());
-    lengths[1] = static_cast<int>(GetInput().second.size());
+    s1_local = GetInput().first;
+    s2_local = GetInput().second;
+    lengths[0] = static_cast<int>(s1_local.size());
+    lengths[1] = static_cast<int>(s2_local.size());
   }
 
   MPI_Bcast(lengths.data(), 2, MPI_INT, 0, MPI_COMM_WORLD);
 
   if (rank != 0) {
-    GetInput().first.resize(lengths[0]);
-    GetInput().second.resize(lengths[1]);
+    s1_local.resize(lengths[0]);
+    s2_local.resize(lengths[1]);
   }
 
-  MPI_Bcast(GetInput().first.data(), lengths[0], MPI_CHAR, 0, MPI_COMM_WORLD);
-  MPI_Bcast(GetInput().second.data(), lengths[1], MPI_CHAR, 0, MPI_COMM_WORLD);
+  MPI_Bcast(s1_local.data(), lengths[0], MPI_CHAR, 0, MPI_COMM_WORLD);
+  MPI_Bcast(s2_local.data(), lengths[1], MPI_CHAR, 0, MPI_COMM_WORLD);
+
+  local_s1_ = std::move(s1_local);
+  local_s2_ = std::move(s2_local);
 
   GetOutput() = 0;
   return true;
@@ -53,8 +61,8 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  const std::string &s1_full = GetInput().first;
-  const std::string &s2_full = GetInput().second;
+  const std::string &s1_full = local_s1_;
+  const std::string &s2_full = local_s2_;
 
   size_t max_len = std::max(s1_full.size(), s2_full.size());
 
@@ -88,9 +96,7 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
 
   int local_count = 0;
   for (size_t i = 0; i < s1_local.size(); i++) {
-    char c1 = s1_local[i];
-    char c2 = s2_local[i];
-    if (c1 != c2) {
+    if (s1_local[i] != s2_local[i]) {
       local_count++;
     }
   }
