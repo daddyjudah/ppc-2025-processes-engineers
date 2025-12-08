@@ -79,7 +79,10 @@ bool MarinLCntMismatChrtInTwoStrMPI::RunImpl() {
 
   std::size_t start =
       (static_cast<std::size_t>(rank) * chunk) + std::min<std::size_t>(static_cast<std::size_t>(rank), remainder);
-  std::size_t end = start + chunk + ((static_cast<std::size_t>(rank) < static_cast<std::size_t>(remainder)) ? 1U : 0U);
+  std::size_t end = start + chunk;
+  if (static_cast<std::size_t>(rank) < remainder) {
+    end += 1;
+  }
 
   int local_count = 0;
   for (std::size_t i = start; i < end && i < total_len; ++i) {
