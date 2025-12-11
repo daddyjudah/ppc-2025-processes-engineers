@@ -20,7 +20,7 @@
 
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
-class NesterovARunFuncTestsProcesses2 : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
+class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
     return std::to_string(std::get<0>(test_param)) + "_" + std::get<1>(test_param);
@@ -66,7 +66,7 @@ class NesterovARunFuncTestsProcesses2 : public ppc::util::BaseRunFuncTests<InTyp
 
 namespace {
 
-TEST_P(NesterovARunFuncTestsProcesses2, MatmulFromPic) {
+TEST_P(MarinLGenerTransmFrAllToOneGatherFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
@@ -79,9 +79,10 @@ const auto kTestTasksList = std::tuple_cat(ppc::util::AddFuncTask<MarinLGenerTra
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
-const auto kPerfTestName = NesterovARunFuncTestsProcesses2::PrintFuncTestName<NesterovARunFuncTestsProcesses2>;
+const auto kPerfTestName =
+    MarinLGenerTransmFrAllToOneGatherFuncTests::PrintFuncTestName<MarinLGenerTransmFrAllToOneGatherFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, NesterovARunFuncTestsProcesses2, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(PicMatrixTests, MarinLGenerTransmFrAllToOneGatherFuncTests, kGtestValues, kPerfTestName);
 
 }  // namespace
 

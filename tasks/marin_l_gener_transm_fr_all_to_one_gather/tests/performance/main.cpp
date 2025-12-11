@@ -7,7 +7,7 @@
 
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
-class ExampleRunPerfTestProcesses2 : public ppc::util::BaseRunPerfTests<InType, OutType> {
+class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
   const int kCount_ = 100;
   InType input_data_{};
 
@@ -24,7 +24,7 @@ class ExampleRunPerfTestProcesses2 : public ppc::util::BaseRunPerfTests<InType, 
   }
 };
 
-TEST_P(ExampleRunPerfTestProcesses2, RunPerfModes) {
+TEST_P(MarinLGenerTransmFrAllToOneGatherPerfTests, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
@@ -34,8 +34,8 @@ const auto kAllPerfTasks =
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 
-const auto kPerfTestName = ExampleRunPerfTestProcesses2::CustomPerfTestName;
+const auto kPerfTestName = MarinLGenerTransmFrAllToOneGatherPerfTests::CustomPerfTestName;
 
-INSTANTIATE_TEST_SUITE_P(RunModeTests, ExampleRunPerfTestProcesses2, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(RunModeTests, MarinLGenerTransmFrAllToOneGatherPerfTests, kGtestValues, kPerfTestName);
 
 }  // namespace marin_l_gener_transm_fr_all_to_one_gather
