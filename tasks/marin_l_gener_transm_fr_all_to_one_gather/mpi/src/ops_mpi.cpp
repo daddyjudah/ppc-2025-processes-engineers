@@ -2,6 +2,7 @@
 
 #include <mpi.h>
 
+#include <algorithm>
 #include <numeric>
 #include <vector>
 
@@ -13,60 +14,60 @@ namespace marin_l_gener_transm_fr_all_to_one_gather {
 MarinLGenerTransmFrAllToOneGatherMPI::MarinLGenerTransmFrAllToOneGatherMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() = {};
 }
 
 bool MarinLGenerTransmFrAllToOneGatherMPI::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  return GetInput() > 0;
 }
 
 bool MarinLGenerTransmFrAllToOneGatherMPI::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 bool MarinLGenerTransmFrAllToOneGatherMPI::RunImpl() {
-  auto input = GetInput();
-  if (input == 0) {
+  const int count = GetInput();
+  if (count <= 0) {
     return false;
   }
-
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
-      }
-    }
-  }
-
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
 
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  if (rank == 0) {
-    GetOutput() /= num_threads;
-  } else {
-    int counter = 0;
-    for (int i = 0; i < num_threads; i++) {
-      counter++;
-    }
+  int num_proc = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
 
-    if (counter != 0) {
-      GetOutput() /= counter;
-    }
+  const int root = 0;
+  const int total_size = num_proc * count;
+
+  std::vector<int> send_buf(count);
+  for (int i = 0; i < count; ++i) {
+    send_buf[i] = rank * 1000 + i;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  return GetOutput() > 0;
+  if (rank == root) {
+    GetOutput().resize(total_size);
+  }
+
+  int send_count = count;
+  int recv_count = count;
+
+  int mpi_result =
+      MPI_Gather(send_buf.data(), send_count, MPI_INT, GetOutput().data(), recv_count, MPI_INT, root, MPI_COMM_WORLD);
+
+  if (mpi_result != MPI_SUCCESS) {
+    return false;
+  }
+
+  if (rank == root) {
+    return GetOutput().size() == static_cast<size_t>(total_size);
+  } else {
+    return true;
+  }
 }
 
 bool MarinLGenerTransmFrAllToOneGatherMPI::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 }  // namespace marin_l_gener_transm_fr_all_to_one_gather

@@ -28,32 +28,12 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
 
  protected:
   void SetUp() override {
-    int width = -1;
-    int height = -1;
-    int channels = -1;
-    std::vector<uint8_t> img;
-    // Read image in RGB to ensure consistent channel count
-    {
-      std::string abs_path =
-          ppc::util::GetAbsoluteTaskPath(PPC_ID_marin_l_gener_transm_fr_all_to_one_gather, "pic.jpg");
-      auto *data = stbi_load(abs_path.c_str(), &width, &height, &channels, STBI_rgb);
-      if (data == nullptr) {
-        throw std::runtime_error("Failed to load image: " + std::string(stbi_failure_reason()));
-      }
-      channels = STBI_rgb;
-      img = std::vector<uint8_t>(data, data + (static_cast<ptrdiff_t>(width * height * channels)));
-      stbi_image_free(data);
-      if (std::cmp_not_equal(width, height)) {
-        throw std::runtime_error("width != height: ");
-      }
-    }
-
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    input_data_ = width - height + std::min(std::accumulate(img.begin(), img.end(), 0), channels);
+    input_data_ = std::get<0>(params);
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return (input_data_ == output_data);
+    return !output_data.empty();
   }
 
   InType GetTestInputData() final {
@@ -66,11 +46,13 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
 
 namespace {
 
-TEST_P(MarinLGenerTransmFrAllToOneGatherFuncTests, MatmulFromPic) {
+TEST_P(MarinLGenerTransmFrAllToOneGatherFuncTests, GatherCheck) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple(3, "3"), std::make_tuple(5, "5"), std::make_tuple(7, "7")};
+const std::array<TestType, 3> kTestParam = {std::make_tuple(10, "gather_size_10"),
+                                            std::make_tuple(50, "gather_size_50"),
+                                            std::make_tuple(100, "gather_size_100")};
 
 const auto kTestTasksList = std::tuple_cat(ppc::util::AddFuncTask<MarinLGenerTransmFrAllToOneGatherMPI, InType>(
                                                kTestParam, PPC_SETTINGS_marin_l_gener_transm_fr_all_to_one_gather),

@@ -11,50 +11,40 @@ namespace marin_l_gener_transm_fr_all_to_one_gather {
 MarinLGenerTransmFrAllToOneGatherSEQ::MarinLGenerTransmFrAllToOneGatherSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() = {};
 }
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  return GetInput() > 0;
 }
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::RunImpl() {
-  if (GetInput() == 0) {
+  const int count = GetInput();
+  if (count <= 0) {
     return false;
   }
 
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
-      }
+  const int num_proc = ppc::util::GetNumThreads();
+
+  const int total_size = num_proc * count;
+
+  GetOutput().reserve(total_size);
+
+  for (int proc_id = 0; proc_id < num_proc; ++proc_id) {
+    for (int i = 0; i < count; ++i) {
+      GetOutput().push_back(proc_id * 1000 + i);
     }
   }
 
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
-
-  int counter = 0;
-  for (int i = 0; i < num_threads; i++) {
-    counter++;
-  }
-
-  if (counter != 0) {
-    GetOutput() /= counter;
-  }
-  return GetOutput() > 0;
+  return GetOutput().size() == static_cast<size_t>(total_size);
 }
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 }  // namespace marin_l_gener_transm_fr_all_to_one_gather
