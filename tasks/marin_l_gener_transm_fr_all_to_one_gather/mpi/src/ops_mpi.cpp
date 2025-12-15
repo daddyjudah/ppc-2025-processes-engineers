@@ -52,6 +52,8 @@ bool MarinLGenerTransmFrAllToOneGatherMPI::RunImpl() {
   int send_count = count;
   int recv_count = count;
 
+  void *recv_ptr = (rank == root) ? GetOutput().data() : nullptr;
+
   int mpi_result =
       MPI_Gather(send_buf.data(), send_count, MPI_INT, GetOutput().data(), recv_count, MPI_INT, root, MPI_COMM_WORLD);
 
