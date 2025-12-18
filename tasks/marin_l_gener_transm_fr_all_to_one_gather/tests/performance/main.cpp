@@ -17,7 +17,7 @@ namespace marin_l_gener_transm_fr_all_to_one_gather {
 class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
  protected:
   static const size_t kDataCount = 10000000;
-  static const MPI_Datatype kDataType = MPI_INT;
+  MPI_Datatype kDataType = MPI_INT;
 
   InType input_data_{};
 
