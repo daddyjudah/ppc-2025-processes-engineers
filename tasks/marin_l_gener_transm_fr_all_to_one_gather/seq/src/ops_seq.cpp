@@ -10,6 +10,21 @@
 
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
+namespace {
+int GetTypeSize(MPI_Datatype datatype) {
+  if (datatype == MPI_INT) {
+    return sizeof(int);
+  }
+  if (datatype == MPI_FLOAT) {
+    return sizeof(float);
+  }
+  if (datatype == MPI_DOUBLE) {
+    return sizeof(double);
+  }
+  return 0;
+}
+}  // namespace
+
 MarinLGenerTransmFrAllToOneGatherSEQ::MarinLGenerTransmFrAllToOneGatherSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
@@ -37,19 +52,6 @@ bool MarinLGenerTransmFrAllToOneGatherSEQ::ValidationImpl() {
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::PreProcessingImpl() {
   return true;
-}
-
-int GetTypeSize(MPI_Datatype datatype) {
-  if (datatype == MPI_INT) {
-    return sizeof(int);
-  }
-  if (datatype == MPI_FLOAT) {
-    return sizeof(float);
-  }
-  if (datatype == MPI_DOUBLE) {
-    return sizeof(double);
-  }
-  return 0;
 }
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::RunImpl() {
