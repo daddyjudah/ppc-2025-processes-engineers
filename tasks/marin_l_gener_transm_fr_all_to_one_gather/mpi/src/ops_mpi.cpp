@@ -102,7 +102,9 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
   std::vector<char> tree_buffer(size * block_sz, 0);
   std::vector<int> rank_buffer(size, -1);
   std::memcpy(tree_buffer.data(), sendbuf, block_sz);
-  rank_buffer[0] = rank;
+  if (!rank_buffer.empty()) {
+    rank_buffer[0] = rank;
+  }
 
   int current_blocks = 1;
 
