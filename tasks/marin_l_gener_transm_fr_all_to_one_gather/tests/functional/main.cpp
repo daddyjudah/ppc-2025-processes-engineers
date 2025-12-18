@@ -61,7 +61,11 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
       type_size = sizeof(double);
     }
 
-    std::vector<char> data(count * type_size);
+    size_t total_size = static_cast<size_t>(count) * type_size;
+    if (total_size == 0) {
+      total_size = 1;
+    }
+    std::vector<char> data(total_size);
 
     if (datatype == MPI_INT) {
       int *data_ptr = reinterpret_cast<int *>(data.data());
