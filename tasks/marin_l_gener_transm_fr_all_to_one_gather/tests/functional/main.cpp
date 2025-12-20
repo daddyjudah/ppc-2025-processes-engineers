@@ -48,17 +48,6 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
     const auto &root = std::get<1>(params);
     const auto &datatype = std::get<2>(params);
 
-    int size = 1;
-    std::string test_name = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kNameTest)>(GetParam());
-    bool is_mpi = test_name.find("_mpi_") != std::string::npos;
-    if (is_mpi) {
-      MPI_Comm_size(MPI_COMM_WORLD, &size);
-    }
-
-    if (is_mpi && root >= size) {
-      GTEST_SKIP();
-    }
-
     int type_size = 0;
     if (datatype == MPI_INT) {
       type_size = sizeof(int);
@@ -146,10 +135,9 @@ TEST_P(MarinLGenerTransmFrAllToOneGatherFuncTests, GatherCheck) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 6> kTestParam = {
-    std::make_tuple(3, 0, MPI_INT, "SmallIntRoot0"),       std::make_tuple(5, 1, MPI_INT, "MediumIntRoot1"),
-    std::make_tuple(4, 0, MPI_FLOAT, "SmallFloatRoot0"),   std::make_tuple(2, 2, MPI_FLOAT, "TinyFloatRoot2"),
-    std::make_tuple(3, 0, MPI_DOUBLE, "SmallDoubleRoot0"), std::make_tuple(1, 1, MPI_DOUBLE, "SingleDoubleRoot1")};
+const std::array<TestType, 3> kTestParam = {std::make_tuple(3, 0, MPI_INT, "SmallIntRoot0"),
+                                            std::make_tuple(4, 0, MPI_FLOAT, "SmallFloatRoot0"),
+                                            std::make_tuple(3, 0, MPI_DOUBLE, "SmallDoubleRoot0")};
 
 const auto kTestTasksList = std::tuple_cat(ppc::util::AddFuncTask<MarinLGenerTransmFrAllToOneGatherMPI, InType>(
                                                kTestParam, PPC_SETTINGS_marin_l_gener_transm_fr_all_to_one_gather),

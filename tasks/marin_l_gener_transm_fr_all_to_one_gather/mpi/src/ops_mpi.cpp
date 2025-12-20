@@ -141,6 +141,7 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
   if (rank == root) {
     char *out = static_cast<char *>(recvbuf);
     std::vector<char> full_data(size * block_sz, 0);
+
     for (size_t i = 0; i < current_ranks.size(); ++i) {
       int r = current_ranks[i];
       if (r >= 0 && r < size) {
