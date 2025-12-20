@@ -66,7 +66,7 @@ bool MarinLGenerTransmFrAllToOneGatherSEQ::RunImpl() {
   size_t total_size = static_cast<size_t>(input.count) * type_size;
   std::vector<char> result(total_size);
 
-  if (total_size > 0) {
+  if (!input.data.empty() && total_size > 0) {
     std::memcpy(result.data(), input.data.data(), total_size);
   }
   GetOutput() = std::move(result);
