@@ -53,18 +53,20 @@ bool MarinLGenerTransmFrAllToOneGatherMPI::ValidationImpl() {
   }
 
   int type_size = GetTypeSize(input.datatype);
+  if (type_size <= 0) {
+    return false;
+  }
+
   if (input.data.size() != static_cast<size_t>(input.count * type_size)) {
     return false;
   }
 
-#ifdef USE_MPI
   int size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   if (input.root >= size) {
     return false;
   }
-#endif
 
   return true;
 }
@@ -129,6 +131,7 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
       MPI_Send(tree_buffer.data(), current_blocks * block_sz, MPI_BYTE, dst_rank, 0, comm);
 
       MPI_Send(rank_buffer.data(), current_blocks, MPI_INT, dst_rank, 1, comm);
+
       return MPI_SUCCESS;
     }
   }
@@ -147,7 +150,6 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
 }
 
 bool MarinLGenerTransmFrAllToOneGatherMPI::RunImpl() {
-#ifdef USE_MPI
   int rank = 0;
   int size = 1;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -166,6 +168,10 @@ bool MarinLGenerTransmFrAllToOneGatherMPI::RunImpl() {
       TreeGatherImpl(input.data.data(), input.count, input.datatype, rank == input.root ? recv_buffer.data() : nullptr,
                      input.count, input.datatype, input.root, MPI_COMM_WORLD);
 
+  if (result != MPI_SUCCESS) {
+    return false;
+  }
+
   if (rank == input.root) {
     GetOutput() = std::move(recv_buffer);
   } else {
@@ -173,23 +179,9 @@ bool MarinLGenerTransmFrAllToOneGatherMPI::RunImpl() {
   }
 
   return true;
-#else
-  const auto &input = GetInput();
-  GetOutput() = input.data;
-  return true;
-#endif
 }
 
 bool MarinLGenerTransmFrAllToOneGatherMPI::PostProcessingImpl() {
-  int rank = 0;
-#ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-  const auto &input = GetInput();
-
-  if (rank == input.root) {
-    return !GetOutput().empty();
-  }
   return true;
 }
 

@@ -18,10 +18,6 @@
 #include "util/include/func_test_util.hpp"
 #include "util/include/util.hpp"
 
-#ifdef USE_MPI
-#  include <mpi.h>
-#endif
-
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
 class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
@@ -102,15 +98,17 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
 
   bool CheckTestOutputData(OutType &output_data) final {
     const auto &input = input_data_;
-    int rank = 0;
-    int size = 1;
-#ifdef USE_MPI
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-#endif
+    std::string test_name = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kNameTest)>(GetParam());
+    bool is_mpi = test_name.find("_mpi_") != std::string::npos;
 
-    if (rank != input.root) {
-      return true;
+    int size = 1;
+    if (is_mpi) {
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+      int rank = 0;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      if (rank != input.root) {
+        return true;
+      }
     }
 
     if (output_data.empty()) {
@@ -154,7 +152,6 @@ const auto kPerfTestName =
 
 INSTANTIATE_TEST_SUITE_P(GatherTests, MarinLGenerTransmFrAllToOneGatherFuncTests, kGtestValues, kPerfTestName);
 
-#ifdef USE_MPI
 TEST(MarinLGenerTransmFrAllToOneGatherMPITest, BasicMPIGather) {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -178,7 +175,6 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, BasicMPIGather) {
     EXPECT_FALSE(result.empty());
   }
 }
-#endif
 
 TEST(MarinLGenerTransmFrAllToOneGatherSEQTest, BasicSEQGather) {
   std::vector<char> data(3 * sizeof(int));
@@ -202,6 +198,80 @@ TEST(MarinLGenerTransmFrAllToOneGatherSEQTest, BasicSEQGather) {
   EXPECT_EQ(res_ptr[0], 1);
   EXPECT_EQ(res_ptr[1], 2);
   EXPECT_EQ(res_ptr[2], 3);
+}
+
+TEST(MarinLGenerTransmFrAllToOneGatherMPITest, InvalidValidation) {
+  std::vector<char> data(sizeof(int));
+  GatherInput input_neg_count{data, -1, MPI_INT, 0};
+  MarinLGenerTransmFrAllToOneGatherMPI task_1(input_neg_count);
+  EXPECT_FALSE(task_1.Validation());
+
+  int size;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  GatherInput input_invalid_root{data, 1, MPI_INT, size + 1};
+  MarinLGenerTransmFrAllToOneGatherMPI task_2(input_invalid_root);
+  EXPECT_FALSE(task_2.Validation());
+
+  GatherInput input_wrong_type{data, 1, MPI_CHAR, 0};
+  MarinLGenerTransmFrAllToOneGatherMPI task_3(input_wrong_type);
+  EXPECT_FALSE(task_3.Validation());
+}
+
+TEST(MarinLGenerTransmFrAllToOneGatherMPITest, MiddleRootGather) {
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  int root = size / 2;
+  int count = 2;
+  std::vector<char> data(count * sizeof(float));
+  float *d_ptr = reinterpret_cast<float *>(data.data());
+  for (int i = 0; i < count; ++i) {
+    d_ptr[i] = static_cast<float>(rank);
+  }
+
+  GatherInput input{data, count, MPI_FLOAT, root};
+  MarinLGenerTransmFrAllToOneGatherMPI task(input);
+
+  ASSERT_TRUE(task.Validation());
+  task.PreProcessing();
+  task.Run();
+  task.PostProcessing();
+
+  if (rank == root) {
+    const auto &result = task.GetOutput();
+    ASSERT_EQ(result.size(), count * size * sizeof(float));
+    const float *res_ptr = reinterpret_cast<const float *>(result.data());
+    for (int r = 0; r < size; ++r) {
+      for (int i = 0; i < count; ++i) {
+        EXPECT_FLOAT_EQ(res_ptr[r * count + i], static_cast<float>(r));
+      }
+    }
+  }
+}
+
+TEST(MarinLGenerTransmFrAllToOneGatherMPITest, LargeDataGather) {
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  int count = 10000;
+  std::vector<char> data(count * sizeof(double));
+  double *d_ptr = reinterpret_cast<double *>(data.data());
+  std::fill(d_ptr, d_ptr + count, static_cast<double>(rank));
+
+  GatherInput input{data, count, MPI_DOUBLE, 0};
+  MarinLGenerTransmFrAllToOneGatherMPI task(input);
+
+  task.Validation();
+  task.PreProcessing();
+  task.Run();
+  task.PostProcessing();
+
+  if (rank == 0) {
+    const auto &result = task.GetOutput();
+    EXPECT_EQ(result.size(), count * size * sizeof(double));
+  }
 }
 
 }  // namespace

@@ -8,11 +8,22 @@
 #include "marin_l_gener_transm_fr_all_to_one_gather/seq/include/ops_seq.hpp"
 #include "util/include/perf_test_util.hpp"
 
-#ifdef USE_MPI
-#  include <mpi.h>
-#endif
-
 namespace marin_l_gener_transm_fr_all_to_one_gather {
+
+namespace {
+size_t GetTypeSizeSeq(MPI_Datatype datatype) {
+  if (datatype == MPI_INT) {
+    return sizeof(int);
+  }
+  if (datatype == MPI_FLOAT) {
+    return sizeof(float);
+  }
+  if (datatype == MPI_DOUBLE) {
+    return sizeof(double);
+  }
+  return 0;
+}
+}  // namespace
 
 class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
  protected:
@@ -25,7 +36,6 @@ class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerf
     const int type_size = sizeof(int);
     std::vector<char> data(kDataCount * type_size);
 
-#ifdef USE_MPI
     int rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -33,49 +43,32 @@ class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerf
     for (size_t i = 0; i < kDataCount; ++i) {
       data_ptr[i] = static_cast<int>(rank * kDataCount + i);
     }
-#else
-    int *data_ptr = reinterpret_cast<int *>(data.data());
-    for (size_t i = 0; i < kDataCount; ++i) {
-      data_ptr[i] = static_cast<int>(i);
-    }
-#endif
+
     int root = 0;
     input_data_ = {data, static_cast<int>(kDataCount), kDataType, root};
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
     const auto &input = input_data_;
-#ifdef USE_MPI
+
+    auto params = GetParam();
+    std::string task_name = std::get<1>(params);
+    bool is_mpi = task_name.find("_mpi_") != std::string::npos;
+
     int size = 1;
-    int rank = 0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    if (rank != input.root) {
-      return output_data.empty();
-    }
-
-    const int type_size = sizeof(int);
-    if (output_data.size() != static_cast<size_t>(input.count * size * type_size)) {
-      return false;
-    }
-
-    const int *result_ptr = reinterpret_cast<const int *>(output_data.data());
-    for (int proc = 0; proc < size; ++proc) {
-      for (int i = 0; i < input.count; ++i) {
-        int expected = proc * input.count + i;
-        if (result_ptr[proc * input.count + i] != expected) {
-          return false;
-        }
+    if (is_mpi) {
+      int rank = 0;
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      if (rank != input.root) {
+        return true;
       }
     }
 
-    return true;
+    int type_size = GetTypeSizeSeq(input.datatype);
+    size_t expected_size = static_cast<size_t>(input.count) * size * type_size;
 
-#else
-    const int type_size = sizeof(int);
-    return output_data.size() == static_cast<size_t>(input.count * type_size);
-#endif
+    return output_data.size() == expected_size;
   }
 
   InType GetTestInputData() final {

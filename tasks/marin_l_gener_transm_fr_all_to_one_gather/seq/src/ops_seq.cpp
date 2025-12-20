@@ -11,7 +11,7 @@
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
 namespace {
-int GetTypeSize(MPI_Datatype datatype) {
+size_t GetTypeSizeSeq(MPI_Datatype datatype) {
   if (datatype == MPI_INT) {
     return sizeof(int);
   }
@@ -39,11 +39,17 @@ bool MarinLGenerTransmFrAllToOneGatherSEQ::ValidationImpl() {
   if (input.count <= 0) {
     return false;
   }
-  if (input.datatype == MPI_DATATYPE_NULL) {
+
+  if (input.root < 0) {
     return false;
   }
 
-  if (input.root < 0) {
+  size_t type_size = GetTypeSizeSeq(input.datatype);
+  if (type_size == 0) {
+    return false;
+  }
+
+  if (input.data.size() != static_cast<size_t>(input.count) * type_size) {
     return false;
   }
 
@@ -56,38 +62,18 @@ bool MarinLGenerTransmFrAllToOneGatherSEQ::PreProcessingImpl() {
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::RunImpl() {
   const auto &input = GetInput();
-  int type_size = GetTypeSize(input.datatype);
-  int rank = 0;
-  int size = 1;
-#ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-#else
-  size = 1;
-#endif
-  if (rank == input.root) {
-    std::vector<char> result(input.count * size * type_size);
-    for (int r = 0; r < size; ++r) {
-      std::memcpy(result.data() + r * input.count * type_size, input.data.data(), input.count * type_size);
-    }
-    GetOutput() = std::move(result);
-  } else {
-    GetOutput() = std::vector<char>();
-  }
+  size_t type_size = GetTypeSizeSeq(input.datatype);
+  size_t total_size = static_cast<size_t>(input.count) * type_size;
+  std::vector<char> result(total_size);
 
+  if (total_size > 0) {
+    std::memcpy(result.data(), input.data.data(), total_size);
+  }
+  GetOutput() = std::move(result);
   return true;
 }
 
 bool MarinLGenerTransmFrAllToOneGatherSEQ::PostProcessingImpl() {
-  int rank = 0;
-#ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-  const auto &input = GetInput();
-
-  if (rank == input.root) {
-    return !GetOutput().empty();
-  }
   return true;
 }
 
