@@ -36,10 +36,6 @@ MarinLGenerTransmFrAllToOneGatherMPI::MarinLGenerTransmFrAllToOneGatherMPI(const
 bool MarinLGenerTransmFrAllToOneGatherMPI::ValidationImpl() {
   const auto &input = GetInput();
 
-  if (input.data.empty()) {
-    return false;
-  }
-
   if (input.count <= 0) {
     return false;
   }
@@ -103,6 +99,7 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
 
   std::vector<char> tree_buffer(size * block_sz, 0);
   std::vector<int> rank_buffer(size, -1);
+
   std::memcpy(tree_buffer.data(), sendbuf, block_sz);
   if (!rank_buffer.empty()) {
     rank_buffer[0] = rank;
@@ -140,9 +137,7 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
     char *out = static_cast<char *>(recvbuf);
     for (int i = 0; i < current_blocks; ++i) {
       int r = rank_buffer[i];
-      if (r >= 0 && r < size) {
-        std::memcpy(out + r * block_sz, tree_buffer.data() + i * block_sz, block_sz);
-      }
+      std::memcpy(out + r * block_sz, tree_buffer.data() + i * block_sz, block_sz);
     }
   }
 
