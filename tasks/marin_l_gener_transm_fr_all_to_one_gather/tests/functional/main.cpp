@@ -48,6 +48,17 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
     const auto &root = std::get<1>(params);
     const auto &datatype = std::get<2>(params);
 
+    int size = 1;
+    std::string test_name = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kNameTest)>(GetParam());
+    bool is_mpi = test_name.find("_mpi_") != std::string::npos;
+    if (is_mpi) {
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+    }
+
+    if (is_mpi && root >= size) {
+      GTEST_SKIP();
+    }
+
     int type_size = 0;
     if (datatype == MPI_INT) {
       type_size = sizeof(int);

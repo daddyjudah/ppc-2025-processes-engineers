@@ -97,48 +97,58 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
 
   int rel_rank = (rank - root + size) % size;
 
-  std::vector<char> tree_buffer(size * block_sz, 0);
-  std::vector<int> rank_buffer(size, -1);
+  std::vector<char> current_data(block_sz);
+  std::vector<int> current_ranks = {rank};
 
-  std::memcpy(tree_buffer.data(), sendbuf, block_sz);
-  if (!rank_buffer.empty()) {
-    rank_buffer[0] = rank;
-  }
+  std::memcpy(current_data.data(), sendbuf, block_sz);
 
-  int current_blocks = 1;
-
-  for (int step = 1; step < size; step <<= 1) {
+  int step = 1;
+  while (step < size) {
     if (rel_rank % (2 * step) == 0) {
-      int src_rel = rel_rank + step;
-      if (src_rel < size) {
-        int src_rank = (src_rel + root) % size;
-        int blocks_to_recv = std::min(step, size - src_rel);
+      int sender_rel = rel_rank + step;
+      if (sender_rel < size) {
+        int sender_rank = (sender_rel + root) % size;
 
-        MPI_Recv(tree_buffer.data() + current_blocks * block_sz, blocks_to_recv * block_sz, MPI_BYTE, src_rank, 0, comm,
-                 MPI_STATUS_IGNORE);
+        int num_ranks;
+        MPI_Recv(&num_ranks, 1, MPI_INT, sender_rank, 100, comm, MPI_STATUS_IGNORE);
 
-        MPI_Recv(rank_buffer.data() + current_blocks, blocks_to_recv, MPI_INT, src_rank, 1, comm, MPI_STATUS_IGNORE);
+        std::vector<char> recv_data(num_ranks * block_sz);
+        MPI_Recv(recv_data.data(), num_ranks * block_sz, MPI_BYTE, sender_rank, 101, comm, MPI_STATUS_IGNORE);
 
-        current_blocks += blocks_to_recv;
+        std::vector<int> recv_ranks(num_ranks);
+        MPI_Recv(recv_ranks.data(), num_ranks, MPI_INT, sender_rank, 102, comm, MPI_STATUS_IGNORE);
+
+        current_data.insert(current_data.end(), recv_data.begin(), recv_data.end());
+        current_ranks.insert(current_ranks.end(), recv_ranks.begin(), recv_ranks.end());
       }
     } else {
-      int dst_rel = rel_rank - step;
-      int dst_rank = (dst_rel + root) % size;
+      int receiver_rel = rel_rank - step;
+      int receiver_rank = (receiver_rel + root) % size;
 
-      MPI_Send(tree_buffer.data(), current_blocks * block_sz, MPI_BYTE, dst_rank, 0, comm);
+      int num_ranks = static_cast<int>(current_ranks.size());
 
-      MPI_Send(rank_buffer.data(), current_blocks, MPI_INT, dst_rank, 1, comm);
+      MPI_Send(&num_ranks, 1, MPI_INT, receiver_rank, 100, comm);
 
-      return MPI_SUCCESS;
+      MPI_Send(current_data.data(), num_ranks * block_sz, MPI_BYTE, receiver_rank, 101, comm);
+
+      MPI_Send(current_ranks.data(), num_ranks, MPI_INT, receiver_rank, 102, comm);
+
+      break;
     }
+    step *= 2;
   }
 
   if (rank == root) {
     char *out = static_cast<char *>(recvbuf);
-    for (int i = 0; i < current_blocks; ++i) {
-      int r = rank_buffer[i];
-      std::memcpy(out + r * block_sz, tree_buffer.data() + i * block_sz, block_sz);
+    std::vector<char> full_data(size * block_sz, 0);
+    for (size_t i = 0; i < current_ranks.size(); ++i) {
+      int r = current_ranks[i];
+      if (r >= 0 && r < size) {
+        std::memcpy(full_data.data() + r * block_sz, current_data.data() + i * block_sz, block_sz);
+      }
     }
+
+    std::memcpy(out, full_data.data(), size * block_sz);
   }
 
   return MPI_SUCCESS;
