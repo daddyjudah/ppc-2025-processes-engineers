@@ -1,12 +1,11 @@
 #include "marin_l_gener_transm_fr_all_to_one_gather/seq/include/ops_seq.hpp"
 
-#include <algorithm>
-#include <cstring>
-#include <numeric>
+#include <mpi.h>
+
+#include <cstddef>
 #include <vector>
 
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 

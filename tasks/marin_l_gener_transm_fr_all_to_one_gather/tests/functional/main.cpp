@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 #include <stb/stb_image.h>
 
 #include <algorithm>
@@ -6,14 +7,12 @@
 #include <cstddef>
 #include <string>
 #include <tuple>
-#include <utility>
 #include <vector>
 
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
 #include "marin_l_gener_transm_fr_all_to_one_gather/mpi/include/ops_mpi.hpp"
 #include "marin_l_gener_transm_fr_all_to_one_gather/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
-#include "util/include/util.hpp"
 
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
@@ -61,17 +60,17 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
     std::vector<char> data(total_size);
 
     if (datatype == MPI_INT) {
-      int *data_ptr = reinterpret_cast<int *>(data.data());
+      auto *data_ptr = reinterpret_cast<int *>(data.data());
       for (int i = 0; i < count; ++i) {
         data_ptr[i] = i + 1;
       }
     } else if (datatype == MPI_FLOAT) {
-      float *data_ptr = reinterpret_cast<float *>(data.data());
+      auto *data_ptr = reinterpret_cast<float *>(data.data());
       for (int i = 0; i < count; ++i) {
         data_ptr[i] = static_cast<float>(i) + 0.5F;
       }
     } else if (datatype == MPI_DOUBLE) {
-      double *data_ptr = reinterpret_cast<double *>(data.data());
+      auto *data_ptr = reinterpret_cast<double *>(data.data());
       for (int i = 0; i < count; ++i) {
         data_ptr[i] = static_cast<double>(i) + 0.25;
       }
@@ -80,7 +79,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
     input_data_ = {data, count, datatype, root};
   }
 
-  int GetTypeSize(MPI_Datatype datatype) {
+  static int GetTypeSize(MPI_Datatype datatype) {
     if (datatype == MPI_INT) {
       return sizeof(int);
     }
@@ -112,7 +111,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
       return false;
     }
 
-    const int type_size = GetTypeSize(input.datatype);
+    const int type_size = static_cast<size_t>(GetTypeSize(input.datatype));
     const size_t expected_size = static_cast<size_t>(input.count) * static_cast<size_t>(size) * type_size;
 
     return output_data.size() == expected_size;
@@ -149,11 +148,11 @@ const auto kPerfTestName =
 INSTANTIATE_TEST_SUITE_P(GatherTests, MarinLGenerTransmFrAllToOneGatherFuncTests, kGtestValues, kPerfTestName);
 
 TEST(MarinLGenerTransmFrAllToOneGatherMPITest, BasicMPIGather) {
-  int rank;
+  int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   std::vector<char> data(3 * sizeof(int));
-  int *data_ptr = reinterpret_cast<int *>(data.data());
+  auto *data_ptr = reinterpret_cast<int *>(data.data());
   data_ptr[0] = 1;
   data_ptr[1] = 2;
   data_ptr[2] = 3;
@@ -174,7 +173,7 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, BasicMPIGather) {
 
 TEST(MarinLGenerTransmFrAllToOneGatherSEQTest, BasicSEQGather) {
   std::vector<char> data(3 * sizeof(int));
-  int *data_ptr = reinterpret_cast<int *>(data.data());
+  auto *data_ptr = reinterpret_cast<int *>(data.data());
   data_ptr[0] = 1;
   data_ptr[1] = 2;
   data_ptr[2] = 3;
@@ -202,7 +201,7 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, InvalidValidation) {
   MarinLGenerTransmFrAllToOneGatherMPI task_1(input_neg_count);
   EXPECT_FALSE(task_1.Validation());
 
-  int size;
+  int size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   GatherInput input_invalid_root{data, 1, MPI_INT, size + 1};
   MarinLGenerTransmFrAllToOneGatherMPI task_2(input_invalid_root);
@@ -214,14 +213,15 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, InvalidValidation) {
 }
 
 TEST(MarinLGenerTransmFrAllToOneGatherMPITest, MiddleRootGather) {
-  int rank, size;
+  int rank = 0;
+  int size = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   int root = size / 2;
   int count = 2;
-  std::vector<char> data(count * sizeof(float));
-  float *d_ptr = reinterpret_cast<float *>(data.data());
+  std::vector<char> data(static_cast<size_t>(count) * sizeof(float));
+  auto *d_ptr = reinterpret_cast<float *>(data.data());
   for (int i = 0; i < count; ++i) {
     d_ptr[i] = static_cast<float>(rank);
   }
@@ -236,24 +236,25 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, MiddleRootGather) {
 
   if (rank == root) {
     const auto &result = task.GetOutput();
-    ASSERT_EQ(result.size(), count * size * sizeof(float));
-    const float *res_ptr = reinterpret_cast<const float *>(result.data());
+    ASSERT_EQ(result.size(), static_cast<size_t>(count) * static_cast<size_t>(size) * sizeof(float));
+    auto *res_ptr = reinterpret_cast<const float *>(result.data());
     for (int r = 0; r < size; ++r) {
       for (int i = 0; i < count; ++i) {
-        EXPECT_FLOAT_EQ(res_ptr[r * count + i], static_cast<float>(r));
+        EXPECT_FLOAT_EQ(res_ptr[(r * count) + i], static_cast<float>(r));
       }
     }
   }
 }
 
 TEST(MarinLGenerTransmFrAllToOneGatherMPITest, LargeDataGather) {
-  int rank, size;
+  int rank = 0;
+  int size = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   int count = 10000;
   std::vector<char> data(count * sizeof(double));
-  double *d_ptr = reinterpret_cast<double *>(data.data());
+  auto *d_ptr = reinterpret_cast<double *>(data.data());
   std::fill(d_ptr, d_ptr + count, static_cast<double>(rank));
 
   GatherInput input{data, count, MPI_DOUBLE, 0};

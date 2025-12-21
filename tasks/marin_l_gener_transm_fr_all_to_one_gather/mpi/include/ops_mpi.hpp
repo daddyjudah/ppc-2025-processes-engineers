@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mpi.h>
+
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
 #include "task/include/task.hpp"
 
@@ -17,9 +19,6 @@ class MarinLGenerTransmFrAllToOneGatherMPI : public BaseTask {
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-
-  int TreeGatherImpl(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
-                     MPI_Datatype recvtype, int root, MPI_Comm comm);
 };
 
 }  // namespace marin_l_gener_transm_fr_all_to_one_gather

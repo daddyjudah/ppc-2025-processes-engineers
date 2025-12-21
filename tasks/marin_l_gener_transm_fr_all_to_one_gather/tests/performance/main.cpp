@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 
+#include <cstddef>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -28,30 +31,30 @@ size_t GetTypeSizeSeq(MPI_Datatype datatype) {
 class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
  protected:
   static const size_t kDataCount = 10000000;
-  MPI_Datatype kDataType = MPI_INT;
+  MPI_Datatype k_data_type_ = MPI_INT;
 
-  InType input_data_{};
+  InType input_data{};
 
   void SetUp() override {
-    const int type_size = sizeof(int);
+    const size_t type_size = sizeof(int);
     std::vector<char> data(kDataCount * type_size);
 
     int rank = 0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int *data_ptr = reinterpret_cast<int *>(data.data());
+    auto *data_ptr = reinterpret_cast<int *>(data.data());
     for (size_t i = 0; i < kDataCount; ++i) {
-      data_ptr[i] = static_cast<int>(static_cast<size_t>(rank) * kDataCount + i);
+      data_ptr[i] = static_cast<int>((static_cast<size_t>(rank) * kDataCount) + i);
     }
 
     const int root = 0;
-    input_data_ = {data, static_cast<int>(kDataCount), kDataType, root};
+    input_data = {data, static_cast<int>(kDataCount), k_data_type_, root};
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    const auto &input = input_data_;
+    const auto &input = input_data;
 
-    const auto params = GetParam();
+    const auto &params = GetParam();
     const std::string task_name = std::get<1>(params);
     const bool is_mpi = task_name.find("_mpi_") != std::string::npos;
 
@@ -65,14 +68,14 @@ class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerf
       }
     }
 
-    const int type_size = GetTypeSizeSeq(input.datatype);
+    const size_t type_size = GetTypeSizeSeq(input.datatype);
     const size_t expected_size = static_cast<size_t>(input.count) * static_cast<size_t>(size) * type_size;
 
     return output_data.size() == expected_size;
   }
 
   InType GetTestInputData() final {
-    return input_data_;
+    return input_data;
   }
 };
 
