@@ -44,6 +44,7 @@ bool MarinLGenerTransmFrAllToOneGatherSEQ::ValidationImpl() {
   }
 
   size_t type_size = GetTypeSizeSeq(input.datatype);
+
   if (type_size == 0) {
     return false;
   }
