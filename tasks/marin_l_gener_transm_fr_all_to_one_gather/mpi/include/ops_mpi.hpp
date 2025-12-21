@@ -1,9 +1,5 @@
 #pragma once
 
-#include <mpi.h>
-
-#include <vector>
-
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
 #include "task/include/task.hpp"
 

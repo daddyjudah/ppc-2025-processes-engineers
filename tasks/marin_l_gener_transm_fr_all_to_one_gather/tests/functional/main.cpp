@@ -4,9 +4,6 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <cstdint>
-#include <numeric>
-#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -57,7 +54,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
       type_size = sizeof(double);
     }
 
-    size_t total_size = static_cast<size_t>(count) * type_size;
+    size_t total_size = static_cast<size_t>(count) * static_cast<size_t>(type_size);
     if (total_size == 0) {
       total_size = 1;
     }
@@ -71,7 +68,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
     } else if (datatype == MPI_FLOAT) {
       float *data_ptr = reinterpret_cast<float *>(data.data());
       for (int i = 0; i < count; ++i) {
-        data_ptr[i] = static_cast<float>(i) + 0.5f;
+        data_ptr[i] = static_cast<float>(i) + 0.5F;
       }
     } else if (datatype == MPI_DOUBLE) {
       double *data_ptr = reinterpret_cast<double *>(data.data());
@@ -115,8 +112,8 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
       return false;
     }
 
-    int type_size = GetTypeSize(input.datatype);
-    size_t expected_size = static_cast<size_t>(input.count * size * type_size);
+    const int type_size = GetTypeSize(input.datatype);
+    const size_t expected_size = static_cast<size_t>(input.count) * static_cast<size_t>(size) * type_size;
 
     return output_data.size() == expected_size;
   }

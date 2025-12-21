@@ -41,19 +41,19 @@ class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerf
 
     int *data_ptr = reinterpret_cast<int *>(data.data());
     for (size_t i = 0; i < kDataCount; ++i) {
-      data_ptr[i] = static_cast<int>(rank * kDataCount + i);
+      data_ptr[i] = static_cast<int>(static_cast<size_t>(rank) * kDataCount + i);
     }
 
-    int root = 0;
+    const int root = 0;
     input_data_ = {data, static_cast<int>(kDataCount), kDataType, root};
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
     const auto &input = input_data_;
 
-    auto params = GetParam();
-    std::string task_name = std::get<1>(params);
-    bool is_mpi = task_name.find("_mpi_") != std::string::npos;
+    const auto params = GetParam();
+    const std::string task_name = std::get<1>(params);
+    const bool is_mpi = task_name.find("_mpi_") != std::string::npos;
 
     int size = 1;
     if (is_mpi) {
@@ -65,8 +65,8 @@ class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerf
       }
     }
 
-    int type_size = GetTypeSizeSeq(input.datatype);
-    size_t expected_size = static_cast<size_t>(input.count) * size * type_size;
+    const int type_size = GetTypeSizeSeq(input.datatype);
+    const size_t expected_size = static_cast<size_t>(input.count) * static_cast<size_t>(size) * type_size;
 
     return output_data.size() == expected_size;
   }

@@ -1,11 +1,7 @@
 #include "marin_l_gener_transm_fr_all_to_one_gather/mpi/include/ops_mpi.hpp"
 
-#include <mpi.h>
-
 #include <algorithm>
-#include <cmath>
 #include <cstring>
-#include <numeric>
 #include <vector>
 
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
@@ -87,7 +83,8 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
     return MPI_ERR_TYPE;
   }
 
-  int type_size;
+  int type_size = 0;
+  ;
   MPI_Type_size(sendtype, &type_size);
   const int block_sz = sendcount * type_size;
 
@@ -100,7 +97,8 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
   std::vector<char> current_data(block_sz);
   std::vector<int> current_ranks = {rank};
 
-  std::memcpy(current_data.data(), sendbuf, block_sz);
+  const auto *send_ptr = static_cast<const char *>(sendbuf);
+  std::copy(send_ptr, send_ptr + block_sz, current_data.begin());
 
   int step = 1;
   while (step < size) {
@@ -140,16 +138,17 @@ int MarinLGenerTransmFrAllToOneGatherMPI::TreeGatherImpl(const void *sendbuf, in
 
   if (rank == root) {
     char *out = static_cast<char *>(recvbuf);
-    std::vector<char> full_data(size * block_sz, 0);
+    std::vector<char> full_data(static_cast<size_t>(size) * block_sz, 0);
 
     for (size_t i = 0; i < current_ranks.size(); ++i) {
       int r = current_ranks[i];
       if (r >= 0 && r < size) {
-        std::memcpy(full_data.data() + r * block_sz, current_data.data() + i * block_sz, block_sz);
+        std::copy(current_data.begin() + (i * block_sz), current_data.begin() + ((i + 1) * block_sz),
+                  full_data.begin() + (r * block_sz));
       }
     }
 
-    std::memcpy(out, full_data.data(), size * block_sz);
+    std::copy(full_data.begin(), full_data.end(), out);
   }
 
   return MPI_SUCCESS;
@@ -163,11 +162,11 @@ bool MarinLGenerTransmFrAllToOneGatherMPI::RunImpl() {
 
   const auto &input = GetInput();
 
-  int type_size = GetTypeSize(input.datatype);
+  const int type_size = GetTypeSize(input.datatype);
 
   std::vector<char> recv_buffer;
   if (rank == input.root) {
-    recv_buffer.resize(input.count * size * type_size);
+    recv_buffer.resize(static_cast<size_t>(input.count) * size * type_size);
   }
 
   int result =
