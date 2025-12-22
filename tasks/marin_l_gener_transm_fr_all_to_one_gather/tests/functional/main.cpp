@@ -3,16 +3,15 @@
 #include <stb/stb_image.h>
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
 #include "marin_l_gener_transm_fr_all_to_one_gather/mpi/include/ops_mpi.hpp"
 #include "marin_l_gener_transm_fr_all_to_one_gather/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
+#include "util/include/gtest_param_util.hpp"
 
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
@@ -76,7 +75,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
       }
     }
 
-    input_data_ = {data, count, datatype, root};
+    input_data_ = GatherInput{.data = data, .count = count, .datatype = datatype, .root = root};
   }
 
   static int GetTypeSize(MPI_Datatype datatype) {
@@ -111,7 +110,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
       return false;
     }
 
-    const int type_size = static_cast<size_t>(GetTypeSize(input.datatype));
+    const size_t type_size = static_cast<size_t>(GetTypeSize(input.datatype));
     const size_t expected_size = static_cast<size_t>(input.count) * static_cast<size_t>(size) * type_size;
 
     return output_data.size() == expected_size;
@@ -157,7 +156,7 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, BasicMPIGather) {
   data_ptr[1] = 2;
   data_ptr[2] = 3;
 
-  GatherInput input{data, 3, MPI_INT, 0};
+  GatherInput input{.data = data, .count = 3, .datatype = MPI_INT, .root = 0};
   MarinLGenerTransmFrAllToOneGatherMPI task(input);
 
   EXPECT_TRUE(task.Validation());
@@ -178,7 +177,7 @@ TEST(MarinLGenerTransmFrAllToOneGatherSEQTest, BasicSEQGather) {
   data_ptr[1] = 2;
   data_ptr[2] = 3;
 
-  GatherInput input{data, 3, MPI_INT, 0};
+  GatherInput input{.data = data, .count = 3, .datatype = MPI_INT, .root = 0};
   MarinLGenerTransmFrAllToOneGatherSEQ task(input);
 
   EXPECT_TRUE(task.Validation());
@@ -197,17 +196,17 @@ TEST(MarinLGenerTransmFrAllToOneGatherSEQTest, BasicSEQGather) {
 
 TEST(MarinLGenerTransmFrAllToOneGatherMPITest, InvalidValidation) {
   std::vector<char> data(sizeof(int));
-  GatherInput input_neg_count{data, -1, MPI_INT, 0};
+  GatherInput input_neg_count{.data = data, .count = -1, .datatype = MPI_INT, .root = 0};
   MarinLGenerTransmFrAllToOneGatherMPI task_1(input_neg_count);
   EXPECT_FALSE(task_1.Validation());
 
   int size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  GatherInput input_invalid_root{data, 1, MPI_INT, size + 1};
+  GatherInput input_invalid_root{.data = data, .count = 1, .datatype = MPI_INT, .root = size + 1};
   MarinLGenerTransmFrAllToOneGatherMPI task_2(input_invalid_root);
   EXPECT_FALSE(task_2.Validation());
 
-  GatherInput input_wrong_type{data, 1, MPI_CHAR, 0};
+  GatherInput input_wrong_type{.data = data, .count = 1, .datatype = MPI_CHAR, .root = 0};
   MarinLGenerTransmFrAllToOneGatherMPI task_3(input_wrong_type);
   EXPECT_FALSE(task_3.Validation());
 }
@@ -226,7 +225,7 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, MiddleRootGather) {
     d_ptr[i] = static_cast<float>(rank);
   }
 
-  GatherInput input{data, count, MPI_FLOAT, root};
+  GatherInput input{.data = data, .count = count, .datatype = MPI_FLOAT, .root = root};
   MarinLGenerTransmFrAllToOneGatherMPI task(input);
 
   ASSERT_TRUE(task.Validation());
@@ -237,10 +236,10 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, MiddleRootGather) {
   if (rank == root) {
     const auto &result = task.GetOutput();
     ASSERT_EQ(result.size(), static_cast<size_t>(count) * static_cast<size_t>(size) * sizeof(float));
-    auto *res_ptr = reinterpret_cast<const float *>(result.data());
-    for (int r = 0; r < size; ++r) {
+    const auto *res_ptr = reinterpret_cast<const float *>(result.data());
+    for (int rank_id = 0; rank_id < size; ++rank_id) {
       for (int i = 0; i < count; ++i) {
-        EXPECT_FLOAT_EQ(res_ptr[(r * count) + i], static_cast<float>(r));
+        EXPECT_FLOAT_EQ(res_ptr[(rank_id * count) + i], static_cast<float>(rank_id));
       }
     }
   }
@@ -257,7 +256,7 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, LargeDataGather) {
   auto *d_ptr = reinterpret_cast<double *>(data.data());
   std::fill(d_ptr, d_ptr + count, static_cast<double>(rank));
 
-  GatherInput input{data, count, MPI_DOUBLE, 0};
+  GatherInput input{.data = data, .count = count, .datatype = MPI_DOUBLE, .root = 0};
   MarinLGenerTransmFrAllToOneGatherMPI task(input);
 
   task.Validation();
@@ -267,7 +266,7 @@ TEST(MarinLGenerTransmFrAllToOneGatherMPITest, LargeDataGather) {
 
   if (rank == 0) {
     const auto &result = task.GetOutput();
-    EXPECT_EQ(result.size(), count * size * sizeof(double));
+    EXPECT_EQ(result.size(), static_cast<size_t>(count) * static_cast<size_t>(size) * sizeof(double));
   }
 }
 

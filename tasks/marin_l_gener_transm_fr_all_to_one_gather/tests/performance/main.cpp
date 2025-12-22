@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
@@ -31,7 +30,7 @@ size_t GetTypeSizeSeq(MPI_Datatype datatype) {
 class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
  protected:
   static const size_t kDataCount = 10000000;
-  MPI_Datatype k_data_type_ = MPI_INT;
+  MPI_Datatype data_type_ = MPI_INT;
 
   InType input_data{};
 
@@ -48,7 +47,7 @@ class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerf
     }
 
     const int root = 0;
-    input_data = {data, static_cast<int>(kDataCount), k_data_type_, root};
+    input_data = GatherInput{.data = data, .count = static_cast<int>(kDataCount), .datatype = data_type_, .root = root};
   }
 
   bool CheckTestOutputData(OutType &output_data) final {

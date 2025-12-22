@@ -11,7 +11,7 @@
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
 struct GatherInput {
-  std::vector<char> data{};
+  std::vector<char> data;
   int count{0};
   MPI_Datatype datatype{MPI_DATATYPE_NULL};
   int root{0};

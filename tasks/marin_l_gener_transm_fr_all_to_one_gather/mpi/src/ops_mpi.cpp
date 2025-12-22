@@ -3,8 +3,9 @@
 #include <mpi.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
-#include <iterator>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -134,7 +135,7 @@ void AssembleAtRoot(const std::vector<char> &data, const std::vector<int> &ranks
     if (r >= 0 && r < size) {
       const size_t src_offset = i * static_cast<size_t>(block_sz);
       const size_t dest_offset = static_cast<size_t>(r) * static_cast<size_t>(block_sz);
-      const size_t len = static_cast<size_t>(block_sz);
+      const auto len = static_cast<size_t>(block_sz);
 
       std::copy(data.begin() + static_cast<std::ptrdiff_t>(src_offset),
                 data.begin() + static_cast<std::ptrdiff_t>(src_offset + len),
@@ -142,7 +143,7 @@ void AssembleAtRoot(const std::vector<char> &data, const std::vector<int> &ranks
     }
   }
 
-  std::copy(full_data.begin(), full_data.end(), out);
+  std::ranges::copy(full_data, out);
 }
 
 int TreeGatherImpl(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
