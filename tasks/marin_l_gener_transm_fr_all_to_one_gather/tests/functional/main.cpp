@@ -11,7 +11,6 @@
 #include "marin_l_gener_transm_fr_all_to_one_gather/mpi/include/ops_mpi.hpp"
 #include "marin_l_gener_transm_fr_all_to_one_gather/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
-#include "util/include/gtest_param_util.hpp"
 
 namespace marin_l_gener_transm_fr_all_to_one_gather {
 
@@ -37,7 +36,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
 
  protected:
   void SetUp() override {
-    TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
+    TestType params = std::get<2>(GetParam());
 
     const auto &count = std::get<0>(params);
     const auto &root = std::get<1>(params);
@@ -93,7 +92,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
 
   bool CheckTestOutputData(OutType &output_data) final {
     const auto &input = input_data_;
-    std::string test_name = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kNameTest)>(GetParam());
+    std::string test_name = std::get<1>(GetParam());
     bool is_mpi = test_name.find("_mpi_") != std::string::npos;
 
     int size = 1;
