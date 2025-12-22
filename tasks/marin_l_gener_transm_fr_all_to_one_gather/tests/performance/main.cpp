@@ -30,7 +30,7 @@ size_t GetTypeSizeSeq(MPI_Datatype datatype) {
 class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
  protected:
   static const size_t kDataCount = 10000000;
-  MPI_Datatype data_type_ = MPI_INT;
+  MPI_Datatype data_type = MPI_INT;
 
   InType input_data{};
 
@@ -47,7 +47,7 @@ class MarinLGenerTransmFrAllToOneGatherPerfTests : public ppc::util::BaseRunPerf
     }
 
     const int root = 0;
-    input_data = GatherInput{.data = data, .count = static_cast<int>(kDataCount), .datatype = data_type_, .root = root};
+    input_data = GatherInput{.data = data, .count = static_cast<int>(kDataCount), .datatype = data_type, .root = root};
   }
 
   bool CheckTestOutputData(OutType &output_data) final {

@@ -3,8 +3,10 @@
 #include <stb/stb_image.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "marin_l_gener_transm_fr_all_to_one_gather/common/include/common.hpp"
@@ -109,7 +111,7 @@ class MarinLGenerTransmFrAllToOneGatherFuncTests : public ppc::util::BaseRunFunc
       return false;
     }
 
-    const size_t type_size = static_cast<size_t>(GetTypeSize(input.datatype));
+    const auto type_size = static_cast<size_t>(GetTypeSize(input.datatype));
     const size_t expected_size = static_cast<size_t>(input.count) * static_cast<size_t>(size) * type_size;
 
     return output_data.size() == expected_size;

@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <ranges>
 #include <utility>
 #include <vector>
 
